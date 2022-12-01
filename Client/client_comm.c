@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdio.h> /* For printf() */
 
-int msgCount = 0;
+
 
 //static linkaddr_t dest_addr ={{ 0x98, 0xa0, 0x93, 0x1c, 0x00, 0x74, 0x12, 0x00 }};
 /*---------------------------------------------------------------------------*/
@@ -22,7 +22,6 @@ void input_callback(const void *data, uint16_t len,
     memcpy(&msg, data, sizeof(msg));
     
     printf("The message resived is: %u \n", msg);
-    msgCount ++;
 
     static int ackmsg = 1;
     nullnet_buf = (uint8_t *)&ackmsg;

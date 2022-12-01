@@ -8,6 +8,7 @@
 
 bool ackresived = false;
 int failMsgCount = 0;
+int resivedMsgCount = 0;
 
 /* Configuration */
 #define SEND_INTERVAL (8 * CLOCK_SECOND)
@@ -33,6 +34,8 @@ void input_callback(const void *data, uint16_t len,
     memcpy(&msg, data, sizeof(msg));
     
     printf("The acknowledgement message resived \n");
+
+    resivedMsgCount ++;
 
     ackresived = true;
 
