@@ -10,7 +10,7 @@ bool ackresived = false;
 int failMsgCount = 0;
 
 /* Configuration */
-#define SEND_INTERVAL (4 * CLOCK_SECOND)
+#define SEND_INTERVAL (8 * CLOCK_SECOND)
 
 //This adress {{ 0x98, 0xa0, 0x93, 0x1c, 0x00, 0x74, 0x12, 0x00 }};
 static linkaddr_t dest_addr = {{ 0xd6, 0x73, 0x93, 0x1c, 0x00, 0x74, 0x12, 0x00 }};
@@ -61,7 +61,7 @@ PROCESS_THREAD(server_comm, ev, data)
   /* Initialize NullNet */
   nullnet_buf = (uint8_t *)&msgCount;
   nullnet_len = sizeof(msgCount);
-  //nullnet_set_input_callback(input_callback);
+  nullnet_set_input_callback(input_callback);
 
   if(!linkaddr_cmp(&dest_addr, &linkaddr_node_addr)) { //If not equal
     printf("LLAddress and DestAddr not equal. Proceeding..");
