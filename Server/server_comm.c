@@ -2,14 +2,15 @@
 #include "contiki.h"
 #include "net/netstack.h"
 #include "net/nullnet/nullnet.h"
-
+#include <os/dev/radio.h>  
 #include <string.h>
 #include <stdio.h> /* For printf() */
 
 bool ackresived = false;
 int failMsgCount = 0;
+int startchannel = 26;
 int resivedMsgCount = 0;
-
+#define sequence = {1,5,7,9.13}:
 /* Configuration */
 #define SEND_INTERVAL (8 * CLOCK_SECOND)
 
@@ -24,7 +25,8 @@ static linkaddr_t coordinator_addr = {{ 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 /*---------------------------------------------------------------------------*/
 PROCESS(server_comm, "Server_comm");
 AUTOSTART_PROCESSES(&server_comm);
-
+//NETSTACK_RADIO.on();
+//NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL,11);
 /*---------------------------------------------------------------------------*/
 void input_callback(const void *data, uint16_t len,
   const linkaddr_t *src, const linkaddr_t *dest)
@@ -71,22 +73,31 @@ PROCESS_THREAD(server_comm, ev, data)
     etimer_set(&periodic_timer, SEND_INTERVAL);
     while(1) {
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-
       if (ackresived == true)
       {
         failMsgCount = 0;
-
       }else
       {
         failMsgCount ++;
         printf("No acknowledgement message resived before timeout \n");
       }
-      
+      if (failMsgCount >= 5) { //change to failmsg
+        printf("Attempting to change channel");
+        startchannel++;
+        if (NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, startchannel) != RADIO_RESULT_OK){
+          printf("issue changing channel");
+        }
+        else {
+          printf("\n Succesfully changed channel to %u",startchannel);
+          failMsgCount = 0; //reset msg count
+        }
+      }
+      //if failmsgcount is above boundary, start channel hopping on given sequence
+
 
       printf("sending %u to client \n", msgCount);
       NETSTACK_NETWORK.output(&dest_addr);
       msgCount++;
-
       ackresived = false;
 
       etimer_reset(&periodic_timer);
