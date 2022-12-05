@@ -29,8 +29,8 @@ typedef struct{
 }jpacket_t;
 
 //time control variables
-unsigned long timeJam = 10;
-unsigned long timeDown = 10;
+unsigned long timeJam =16;
+unsigned long timeDown = 16;
 
 //ENERGEST time conversion
 // static unsigned long to_seconds(uint64_t time) {

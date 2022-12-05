@@ -33,9 +33,9 @@ unsigned long timeJam = 10;
 unsigned long timeDown = 10;
 
 //ENERGEST time conversion
-// static unsigned long to_seconds(uint64_t time) {
-//   return (unsigned long)(time / ENERGEST_SECOND);
-// }
+static unsigned long to_seconds(uint64_t time) {
+  return (unsigned long)(time / ENERGEST_SECOND);
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -64,7 +64,7 @@ PROCESS_THREAD(jammerProcess, ev, data)
   jpacket_t jpacket;
   memset(&jpacket, 0, sizeof(jpacket_t));
   strcpy(jpacket.data, "The network is now being jammed.The network is now being jammed.");
-  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  // ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   while(1) {
     //Waiting interval
     //etimer_reset(&periodic_timer);
@@ -80,18 +80,18 @@ PROCESS_THREAD(jammerProcess, ev, data)
      cc2420_driver.send((void*)&jpacket, JAMMER_PACKET_LEN); 
      ENERGEST_SWITCH(ENERGEST_TYPE_TRANSMIT, ENERGEST_TYPE_LISTEN);
     //  /* Update all energest times. */
-     //energest_flush();
+     energest_flush();
     //}
     //watchdog_start();
 
     //etimer_reset(&periodic_timer);    
 
-    //  printf("\nEnergest:\n");
-    //  printf(" CPU          %4lus LPM      %4lus DEEP LPM %4lus  Total time %lus\n",
-    //        to_seconds(energest_type_time(ENERGEST_TYPE_CPU)),
-    //        to_seconds(energest_type_time(ENERGEST_TYPE_LPM)),
-    //        to_seconds(energest_type_time(ENERGEST_TYPE_DEEP_LPM)),
-    //        to_seconds(ENERGEST_GET_TOTAL_TIME()));
+     printf("\nEnergest:\n");
+     printf(" CPU          %4lus LPM      %4lus DEEP LPM %4lus  Total time %lus\n",
+           to_seconds(energest_type_time(ENERGEST_TYPE_CPU)),
+           to_seconds(energest_type_time(ENERGEST_TYPE_LPM)),
+           to_seconds(energest_type_time(ENERGEST_TYPE_DEEP_LPM)),
+           to_seconds(ENERGEST_GET_TOTAL_TIME()));
     //  printf(" Radio LISTEN %4lus TRANSMIT %4lus OFF      %4lus\n",
     //        to_seconds(energest_type_time(ENERGEST_TYPE_LISTEN)),
     //        to_seconds(energest_type_time(ENERGEST_TYPE_TRANSMIT)),
