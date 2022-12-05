@@ -63,28 +63,28 @@ PROCESS_THREAD(jammerProcess, ev, data)
   //Load data into packet
   jpacket_t jpacket;
   memset(&jpacket, 0, sizeof(jpacket_t));
-  strcpy(jpacket.data, "Suck my dick and start working. Suck my dick and start working. ");
-
+  strcpy(jpacket.data, "The network is now being jammed.The network is now being jammed.");
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   while(1) {
     //Waiting interval
-    etimer_reset(&periodic_timer);
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+    //etimer_reset(&periodic_timer);
+    //PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
   
     // Jamming interval
-    watchdog_stop();
-    unsigned long startClock = clock_time();
-    while(clock_time() - startClock < timeJam * CLOCK_SECOND)
-    {
+    //watchdog_stop();
+    //unsigned long startClock = clock_time();
+    //while(clock_time() - startClock < timeJam * CLOCK_SECOND)
+    //{
      ENERGEST_SWITCH(ENERGEST_TYPE_LISTEN, ENERGEST_TYPE_TRANSMIT);
      //CALL Radio Driver to transmit the Packet..
      cc2420_driver.send((void*)&jpacket, JAMMER_PACKET_LEN); 
      ENERGEST_SWITCH(ENERGEST_TYPE_TRANSMIT, ENERGEST_TYPE_LISTEN);
     //  /* Update all energest times. */
-     energest_flush();
-    }
-    watchdog_start();
+     //energest_flush();
+    //}
+    //watchdog_start();
 
-    etimer_reset(&periodic_timer);    
+    //etimer_reset(&periodic_timer);    
 
     //  printf("\nEnergest:\n");
     //  printf(" CPU          %4lus LPM      %4lus DEEP LPM %4lus  Total time %lus\n",
