@@ -9,7 +9,6 @@
 #include "cc2420.h"
 #include "dev/watchdog.h"
 
-
 #include <stdio.h>
 #include <string.h>
 
@@ -18,6 +17,7 @@
 
 //Energest definitions
 #define ENERGEST_CONF_ON 1 //Activate energest module
+
 //Change clock to CONTIKI-NG system
 #define ENERGEST_CONF_CURRENT_TIME clock_time
 #define ENERGEST_CONF_TIME_T clock_time_t
@@ -28,15 +28,12 @@ typedef struct{
      char data[JAMMER_PACKET_LEN];
 }jpacket_t;
 
-//time control variables
-unsigned long timeJam = 10;
-unsigned long timeDown = 10;
-
-//ENERGEST time conversion
-static unsigned long to_seconds(uint64_t time) {
+static unsigned long
+to_seconds(uint64_t time)
+{
   return (unsigned long)(time / ENERGEST_SECOND);
 }
-
+ 
 /*---------------------------------------------------------------------------*/
 
 PROCESS(jammerProcess, "Jammer Process");
@@ -47,57 +44,52 @@ AUTOSTART_PROCESSES(&jammerProcess);
 
 PROCESS_THREAD(jammerProcess, ev, data)
 {
-  static struct etimer periodic_timer;
   PROCESS_BEGIN();
-  //start radio and set CCA to 0
-  NETSTACK_RADIO.on();
+  static struct etimer periodic_timer;
+  static unsigned long timer;
+
+  //Set CCA to 0
   NETSTACK_RADIO.set_value(RADIO_PARAM_TX_MODE, 0);
-  
-  //set timer..
-  etimer_set(&periodic_timer, timeDown * CLOCK_SECOND);
-  
-  //set channel..
-  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, 26);
-  cc2420_set_channel(26);
+  //Set timer..
+  etimer_set(&periodic_timer, 5 * CLOCK_SECOND);
+
+  //Set channel..
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, 11);
+  cc2420_set_channel(11);
 
   //Load data into packet
   jpacket_t jpacket;
   memset(&jpacket, 0, sizeof(jpacket_t));
   strcpy(jpacket.data, "The network is now being jammed.The network is now being jammed.");
-  // ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+
+  //Turn on radio
+  timer = clock_seconds();
   while(1) {
-    //Waiting interval
-    //etimer_reset(&periodic_timer);
-    //PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-  
-    // Jamming interval
-    //watchdog_stop();
-    //unsigned long startClock = clock_time();
-    //while(clock_time() - startClock < timeJam * CLOCK_SECOND)
-    //{
-     ENERGEST_SWITCH(ENERGEST_TYPE_LISTEN, ENERGEST_TYPE_TRANSMIT);
      //CALL Radio Driver to transmit the Packet..
+     
+     NETSTACK_RADIO.on();
      cc2420_driver.send((void*)&jpacket, JAMMER_PACKET_LEN); 
-     ENERGEST_SWITCH(ENERGEST_TYPE_TRANSMIT, ENERGEST_TYPE_LISTEN);
-    //  /* Update all energest times. */
+     NETSTACK_RADIO.off();
+     //Update all energest times
+     
+    
      energest_flush();
-    //}
-    //watchdog_start();
-
-    //etimer_reset(&periodic_timer);    
-
-     printf("\nEnergest:\n");
-     printf(" CPU          %4lus LPM      %4lus DEEP LPM %4lus  Total time %lus\n",
+     if(clock_seconds() - timer >= 240){
+      
+        printf("\nEnergest:\n");
+        printf(" CPU          %4lus LPM      %4lus DEEP LPM %4lus  Total time %lus\n",
            to_seconds(energest_type_time(ENERGEST_TYPE_CPU)),
            to_seconds(energest_type_time(ENERGEST_TYPE_LPM)),
            to_seconds(energest_type_time(ENERGEST_TYPE_DEEP_LPM)),
            to_seconds(ENERGEST_GET_TOTAL_TIME()));
-    //  printf(" Radio LISTEN %4lus TRANSMIT %4lus OFF      %4lus\n",
-    //        to_seconds(energest_type_time(ENERGEST_TYPE_LISTEN)),
-    //        to_seconds(energest_type_time(ENERGEST_TYPE_TRANSMIT)),
-    //        to_seconds(ENERGEST_GET_TOTAL_TIME()
-    //                   - energest_type_time(ENERGEST_TYPE_TRANSMIT)
-    //                   - energest_type_time(ENERGEST_TYPE_LISTEN)));
+        printf(" Radio LISTEN %4lus TRANSMIT %4lus OFF      %4lus\n",
+           to_seconds(energest_type_time(ENERGEST_TYPE_LISTEN)),
+           to_seconds(energest_type_time(ENERGEST_TYPE_TRANSMIT)),
+           to_seconds(ENERGEST_GET_TOTAL_TIME()
+                      - energest_type_time(ENERGEST_TYPE_TRANSMIT)
+                      - energest_type_time(ENERGEST_TYPE_LISTEN)));
+        break;
+     }
   }
   PROCESS_END();
 }
