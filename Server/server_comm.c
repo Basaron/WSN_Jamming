@@ -111,7 +111,6 @@ PROCESS_THREAD(server_comm, ev, data)
         printf("Attempting to change channel \n");
         startchannel++; // change to next channel
 
-        //try to change channel
         if (startchannel > 26)
         {
           startchannel = 11;

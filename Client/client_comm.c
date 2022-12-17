@@ -71,7 +71,6 @@ PROCESS_THREAD(client_comm, ev, data)
       printf("Didnt recieve expected message. Incrementing count \n");
       //failcount++;
     }
-    //change channel if too many failed messages (result of succesfull jamming) 
 
     // change channel if too many failed messages (result of succesfull jamming)
     if (failcount >= 5)
@@ -79,7 +78,6 @@ PROCESS_THREAD(client_comm, ev, data)
       printf("Too many non-recieved messages. Swapping channel \n");
       startchannel++;
 
-      //try to change channel 
       if (startchannel > 26)
       {
         startchannel = 11;
