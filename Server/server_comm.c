@@ -101,7 +101,7 @@ PROCESS_THREAD(server_comm, ev, data)
       }
       else
       {
-        //failMsgCount++;
+        // failMsgCount++;
         printf("No acknowledgement message resived before timeout \n");
       }
 

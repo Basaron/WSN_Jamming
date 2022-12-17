@@ -111,10 +111,9 @@ PROCESS_THREAD(jammerProcess, ev, data)
 
     // CALL Radio Driver to transmit the Packet..
     cc2420_driver.send((void *)&jpacket, JAMMER_PACKET_LEN);
-    
-    //Update all energest times
+
+    // Update all energest times
     energest_flush();
-   
 
     if (clock_seconds() - timerStart >= 30)
     {

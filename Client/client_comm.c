@@ -69,7 +69,7 @@ PROCESS_THREAD(client_comm, ev, data)
     else
     {
       printf("Didnt recieve expected message. Incrementing count \n");
-      //failcount++;
+      // failcount++;
     }
 
     // change channel if too many failed messages (result of succesfull jamming)
