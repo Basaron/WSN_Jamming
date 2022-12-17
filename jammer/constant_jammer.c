@@ -27,12 +27,6 @@
 typedef struct{
      char data[JAMMER_PACKET_LEN];
 }jpacket_t;
-
-static unsigned long
-to_seconds(uint64_t time)
-{
-  return (unsigned long)(time / ENERGEST_SECOND);
-}
  
 /*---------------------------------------------------------------------------*/
 
@@ -48,7 +42,7 @@ PROCESS_THREAD(jammerProcess, ev, data)
   static struct etimer periodic_timer;
   static unsigned long timer;
 
-  //Set CCA to 0
+  //Turn off CCA
   NETSTACK_RADIO.set_value(RADIO_PARAM_TX_MODE, 0);
   //Set timer..
   etimer_set(&periodic_timer, 5 * CLOCK_SECOND);
@@ -61,19 +55,19 @@ PROCESS_THREAD(jammerProcess, ev, data)
   jpacket_t jpacket;
   memset(&jpacket, 0, sizeof(jpacket_t));
   strcpy(jpacket.data, "The network is now being jammed.The network is now being jammed.");
-
-  //Turn on radio
+  
   timer = clock_seconds();
   while(1) {
-     //CALL Radio Driver to transmit the Packet..
-     
+
+     //Turn on radio and radio driver to transmit the packet..
      NETSTACK_RADIO.on();
      cc2420_driver.send((void*)&jpacket, JAMMER_PACKET_LEN); 
      NETSTACK_RADIO.off();
-     //Update all energest times
      
-    
+     //Update all energest times
      energest_flush();
+
+     //Break loop to release thread and get Energest status
      if(clock_seconds() - timer >= 240){
         break;
      }
