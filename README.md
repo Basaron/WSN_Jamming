@@ -10,6 +10,6 @@
   
 Here xxx can be change to witch type of jammer is desired (constant/random/reactive)
 
-  make TARGET=sky MOTES=/dev/ttyUSB3 xxx_jammer.upload login
+    make TARGET=sky MOTES=/dev/ttyUSB3 xxx_jammer.upload login
 
 
